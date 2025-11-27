@@ -1,0 +1,46 @@
+name: Calculate Next Event
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs once per day at midnight UTC
+  workflow_dispatch: {} # Allows manual run
+
+jobs:
+  calculate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      - name: Compute next event
+        run: |
+          # Read list from well.json
+          dates=$(jq -r '.[]' well.json)
+
+          today=$(date -u +"%Y-%m-%d")
+
+          next=""
+          for d in $dates; do
+            if [[ "$d" > "$today" ]]; then
+              if [[ -z "$next" || "$d" < "$next" ]]; then
+                next="$d"
+              fi
+            fi
+          done
+
+          # Write file
+          echo "{ \"next\": \"$next\" }" > next.json
+
+      - name: Commit update
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update next.json"
+          file_pattern: next.json
