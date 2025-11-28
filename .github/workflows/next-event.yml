@@ -23,7 +23,7 @@ jobs:
       - name: Compute next event
         run: |
           # Read list from well.json
-          dates=$(jq -r '.[]' well.json)
+          dates=$(jq -r '.well[]' well.json)
 
           today=$(date -u +"%Y-%m-%d")
 
