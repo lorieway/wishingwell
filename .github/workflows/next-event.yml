@@ -1,51 +1,46 @@
 name: Calculate Next Event
 
 on:
-schedule:
-- cron: '0 0 * * *' # Runs once per day at midnight UTC
-workflow_dispatch: {} # Allows manual run
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch: {}
 
 jobs:
-calculate:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout repo
-uses: actions/checkout@v3
+  calculate:
+    runs-on: ubuntu-latest
 
-```
-  - name: Set up Node
-    uses: actions/setup-node@v3
-    with:
-      node-version: '18'
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-  - name: Install jq
-    run: sudo apt-get install jq -y
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-  - name: Compute next event
-    run: |
-      # Read list from well.json
-      dates=$(jq -r '.well[]' well.json)
+      - name: Install jq
+        run: sudo apt-get install jq -y
 
-      today=$(date -u +"%Y-%m-%d")
+      - name: Compute next event
+        run: |
+          dates=$(jq -r '.well[]' well.json)
+          today=$(date -u +"%Y-%m-%d")
 
-      next=""
-      for d in $dates; do
-        if [[ "$d" > "$today" ]]; then
-          if [[ -z "$next" || "$d" < "$next" ]]; then
-            next="$d"
-          fi
-        fi
-      done
+          next=""
+          for d in $dates; do
+            if [[ "$d" > "$today" ]]; then
+              if [[ -z "$next" || "$d" < "$next" ]]; then
+                next="$d"
+              fi
+            fi
+          done
 
-      # Format the date for display
-      formatted=$(date -d "$next" +"%-d %B, %Y, at %-I%P")
+          formatted=$(date -d "$next" +"%-d %B, %Y, at %-I%P")
 
-      # Write plain text file
-      echo "$formatted" > next.json
+          echo "$formatted" > next.json
 
-  - name: Commit update
-    uses: stefanzweifel/git-auto-commit-action@v5
-    with:
-      commit_message: "Update next.json"
-      file_pattern: next.json
-```
+      - name: Commit update
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update next.json"
+          file_pattern: next.json
