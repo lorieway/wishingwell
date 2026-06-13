@@ -37,7 +37,7 @@ jobs:
 
           formatted=$(date -d "$next" +"%-d %B, %Y, at %-I%P")
 
-          echo "$formatted" > next.json
+          printf "%s" "$formatted" > next.json
 
       - name: Commit update
         uses: stefanzweifel/git-auto-commit-action@v5
